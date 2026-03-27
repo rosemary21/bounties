@@ -27,6 +27,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Search, Filter } from "lucide-react";
 import { MiniLeaderboard } from "@/components/leaderboard/mini-leaderboard";
+import { LightningRoundBanner } from "@/components/bounty/lightning-round-banner";
+import { LightningRoundSchedule } from "@/components/bounty/lightning-round-schedule";
 
 export default function BountiesPage() {
   const { data, isLoading, isError, error, refetch } = useBounties();
@@ -323,14 +325,17 @@ export default function BountiesPage() {
                 </div>
               </div>
 
-              <div className="hidden lg:block">
+              <div className="hidden lg:block space-y-4">
                 <MiniLeaderboard className="w-full" />
+                <LightningRoundSchedule className="w-full" />
               </div>
             </div>
           </aside>
 
           {/* Main Content */}
           <main className="flex-1 min-w-0">
+            <LightningRoundBanner className="mb-8" />
+
             <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4   backdrop-blur-sm">
               <div className="text-sm ">
                 <span className="font-semibold ">
