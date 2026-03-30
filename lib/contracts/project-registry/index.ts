@@ -74,7 +74,10 @@ export class ProjectRegistryClient {
       nativeToScVal(args.name, { type: "string" }),
       nativeToScVal(args.description, { type: "string" }),
       nativeToScVal(args.repository, { type: "string" }),
-      nativeToScVal(args.maintainers, { type: "vec", elementType: "address" }),
+      nativeToScVal(args.maintainers, {
+        type: "vec",
+        elementType: "address",
+      } as unknown as { type: string }),
     ];
   }
 
