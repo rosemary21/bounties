@@ -33,7 +33,7 @@ export interface CreateProjectArgs {
   name: string;
   description: string;
   repository: string;
-  maintainers: string[];
+  maintainers: string[]; // addresses
 }
 
 export interface UpdateProjectArgs {
@@ -45,7 +45,7 @@ export interface UpdateProjectArgs {
 
 export interface AddMaintainerArgs {
   project_id: string;
-  maintainer: string;
+  maintainer: string; // address
 }
 
 export const networks = {
@@ -74,7 +74,7 @@ export class ProjectRegistryClient {
       nativeToScVal(args.name, { type: "string" }),
       nativeToScVal(args.description, { type: "string" }),
       nativeToScVal(args.repository, { type: "string" }),
-      nativeToScVal(args.maintainers, { type: "vec" }),
+      nativeToScVal(args.maintainers, { type: "vec", elementType: "address" }),
     ];
   }
 
