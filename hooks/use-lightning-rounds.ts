@@ -1,6 +1,11 @@
-import { useMemo, useState, useEffect } from "react";
-import { useActiveBountiesQuery, useBountiesQuery } from "@/lib/graphql/generated";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import {
+  useActiveBountiesQuery,
+  useBountiesQuery,
+} from "@/lib/graphql/generated";
 import type { BountyFieldsFragment } from "@/lib/graphql/generated";
+
+const LIGHTNING_ROUND_BOUNTIES_LIMIT = 50;
 
 export interface LightningRound {
   id: string;
@@ -70,8 +75,11 @@ export function useLightningRounds() {
   }, [data?.activeBounties]);
 
   const activeRound = useMemo(
-    () => rounds.find((r) => r.status.toLowerCase() === "active") ?? rounds[0] ?? null,
-    [rounds]
+    () =>
+      rounds.find((r) => r.status.toLowerCase() === "active") ??
+      rounds[0] ??
+      null,
+    [rounds],
   );
 
   return { rounds, activeRound, isLoading, isError, error, refetch };
@@ -79,15 +87,24 @@ export function useLightningRounds() {
 
 /**
  * Fetches bounties that belong to a specific lightning round (bountyWindow).
+ * Skips the query when `windowId` is empty to avoid unnecessary network requests.
  */
 export function useLightningRoundBounties(windowId: string) {
-  const { data, isLoading, isError, error } = useBountiesQuery({
-    query: { bountyWindowId: windowId, limit: 50 },
-  });
+  const { data, isLoading, isError, error } = useBountiesQuery(
+    {
+      query: {
+        bountyWindowId: windowId,
+        limit: LIGHTNING_ROUND_BOUNTIES_LIMIT,
+      },
+    },
+    {
+      enabled: !!windowId,
+    },
+  );
 
   const bounties = useMemo<BountyFieldsFragment[]>(
     () => (data?.bounties.bounties ?? []) as BountyFieldsFragment[],
-    [data?.bounties.bounties]
+    [data?.bounties.bounties],
   );
 
   const byCategory = useMemo(() => {
@@ -101,12 +118,14 @@ export function useLightningRoundBounties(windowId: string) {
 
   const totalValue = useMemo(
     () => bounties.reduce((sum, b) => sum + (b.rewardAmount ?? 0), 0),
-    [bounties]
+    [bounties],
   );
 
+  // Backend status values are upper-case (e.g. "COMPLETED"), so normalise before comparing.
   const completedCount = useMemo(
-    () => bounties.filter((b) => b.status === "completed").length,
-    [bounties]
+    () =>
+      bounties.filter((b) => b.status?.toUpperCase() === "COMPLETED").length,
+    [bounties],
   );
 
   return {
@@ -125,7 +144,7 @@ export function useLightningRoundBounties(windowId: string) {
  * Live countdown to a target date. Updates every second on the client.
  */
 export function useCountdown(targetDate: string | null): CountdownTime {
-  const getTime = (): CountdownTime => {
+  const getTime = useCallback((): CountdownTime => {
     if (!targetDate) {
       return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
     }
@@ -140,7 +159,7 @@ export function useCountdown(targetDate: string | null): CountdownTime {
       seconds: Math.floor((diff / 1000) % 60),
       expired: false,
     };
-  };
+  }, [targetDate]);
 
   const [time, setTime] = useState<CountdownTime>(getTime);
 
@@ -148,8 +167,7 @@ export function useCountdown(targetDate: string | null): CountdownTime {
     if (!targetDate) return;
     const interval = setInterval(() => setTime(getTime()), 1000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetDate]);
+  }, [targetDate, getTime]);
 
   return time;
 }

@@ -1,12 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, CalendarDays, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import {
+  Zap,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  ChevronRight,
+  AlertCircle,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useLightningRounds, type LightningRound } from "@/hooks/use-lightning-rounds";
+import {
+  useLightningRounds,
+  type LightningRound,
+} from "@/hooks/use-lightning-rounds";
 import { format, isPast, isFuture } from "date-fns";
 
 function RoundStatusBadge({ round }: { round: LightningRound }) {
@@ -35,23 +45,23 @@ function RoundStatusBadge({ round }: { round: LightningRound }) {
 
 function RoundRow({ round }: { round: LightningRound }) {
   const isEnded = round.endDate ? isPast(new Date(round.endDate)) : false;
-  const isUpcoming = round.startDate ? isFuture(new Date(round.startDate)) : false;
+  const isUpcoming = round.startDate
+    ? isFuture(new Date(round.startDate))
+    : false;
 
   return (
     <Link
       href={`/bounty/lightning-round?windowId=${round.id}`}
       className={cn(
         "flex items-center gap-4 px-4 py-3.5 border-b border-border/40 last:border-0",
-        "hover:bg-muted/40 transition-colors group"
+        "hover:bg-muted/40 transition-colors group",
       )}
     >
       {/* Icon */}
       <div
         className={cn(
           "shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
-          isEnded
-            ? "bg-muted"
-            : "bg-yellow-500/15 border border-yellow-500/30"
+          isEnded ? "bg-muted" : "bg-yellow-500/15 border border-yellow-500/30",
         )}
       >
         {isEnded ? (
@@ -60,7 +70,7 @@ function RoundRow({ round }: { round: LightningRound }) {
           <Zap
             className={cn(
               "h-4 w-4",
-              isUpcoming ? "text-blue-400" : "text-yellow-400 fill-yellow-400"
+              isUpcoming ? "text-blue-400" : "text-yellow-400 fill-yellow-400",
             )}
           />
         )}
@@ -72,7 +82,7 @@ function RoundRow({ round }: { round: LightningRound }) {
           <span
             className={cn(
               "text-sm font-medium truncate",
-              isEnded ? "text-muted-foreground" : "text-foreground"
+              isEnded ? "text-muted-foreground" : "text-foreground",
             )}
           >
             {round.name}
@@ -121,7 +131,7 @@ export function LightningRoundSchedule({
   className,
   maxItems = 3,
 }: LightningRoundScheduleProps) {
-  const { rounds, isLoading } = useLightningRounds();
+  const { rounds, isLoading, isError, refetch } = useLightningRounds();
 
   const displayed = rounds.slice(0, maxItems);
 
@@ -129,7 +139,7 @@ export function LightningRoundSchedule({
     <Card
       className={cn(
         "border-border/50 bg-background-card overflow-hidden",
-        className
+        className,
       )}
     >
       <CardHeader className="pb-3 pt-4 px-4 flex flex-row items-center justify-between space-y-0">
@@ -148,6 +158,18 @@ export function LightningRoundSchedule({
       <CardContent className="p-0">
         {isLoading ? (
           <ScheduleSkeleton />
+        ) : isError ? (
+          <div className="px-4 py-6 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-400" />
+            <span>Failed to load round schedule.</span>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="text-xs text-primary hover:underline"
+            >
+              Retry
+            </button>
+          </div>
         ) : displayed.length === 0 ? (
           <div className="px-4 py-6 text-center text-sm text-muted-foreground">
             No upcoming rounds scheduled.

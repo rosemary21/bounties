@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -51,7 +52,13 @@ function StatCard({
   );
 }
 
-function CountdownBlock({ targetDate, label }: { targetDate: string | null; label: string }) {
+function CountdownBlock({
+  targetDate,
+  label,
+}: {
+  targetDate: string | null;
+  label: string;
+}) {
   const cd = useCountdown(targetDate);
   if (cd.expired) return null;
 
@@ -97,7 +104,9 @@ function ProgressTracker({
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="text-xs text-muted-foreground text-right">{pct}% complete</div>
+      <div className="text-xs text-muted-foreground text-right">
+        {pct}% complete
+      </div>
     </div>
   );
 }
@@ -121,7 +130,11 @@ function CategorySection({
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 auto-rows-fr">
         {bounties.map((bounty) => (
-          <Link key={bounty.id} href={`/bounty/${bounty.id}`} className="h-full block">
+          <Link
+            key={bounty.id}
+            href={`/bounty/${bounty.id}`}
+            className="h-full block"
+          >
             <BountyCard bounty={bounty} />
           </Link>
         ))}
@@ -147,7 +160,7 @@ function RoundSelector({
             "px-3 py-1.5 text-sm rounded-full border transition-all",
             r.id === activeId
               ? "bg-yellow-500/15 border-yellow-500/40 text-yellow-300 font-medium"
-              : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
+              : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground",
           )}
         >
           {r.name}
@@ -158,13 +171,33 @@ function RoundSelector({
 }
 
 export default function LightningRoundPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen text-foreground pb-20">
+          <div className="container mx-auto px-4 py-10 relative z-10 max-w-7xl">
+            <BountyListSkeleton count={6} />
+          </div>
+        </div>
+      }
+    >
+      <LightningRoundPageContent />
+    </Suspense>
+  );
+}
+
+function LightningRoundPageContent() {
   const searchParams = useSearchParams();
   const windowIdParam = searchParams.get("windowId");
 
-  const { rounds, activeRound, isLoading: roundsLoading } = useLightningRounds();
+  const {
+    rounds,
+    activeRound,
+    isLoading: roundsLoading,
+  } = useLightningRounds();
 
   const currentRound = windowIdParam
-    ? rounds.find((r) => r.id === windowIdParam) ?? activeRound
+    ? (rounds.find((r) => r.id === windowIdParam) ?? activeRound)
     : activeRound;
 
   const {
@@ -179,10 +212,12 @@ export default function LightningRoundPage() {
   const isActive = currentRound?.status.toLowerCase() === "active";
   const isEnded =
     currentRound?.endDate && new Date(currentRound.endDate) < new Date();
-  const countdownTarget = isActive ? currentRound?.endDate : currentRound?.startDate;
+  const countdownTarget = isActive
+    ? currentRound?.endDate
+    : currentRound?.startDate;
 
   const categoryEntries = Object.entries(byCategory).sort(([a], [b]) =>
-    a.localeCompare(b)
+    a.localeCompare(b),
   );
 
   return (
@@ -222,7 +257,10 @@ export default function LightningRoundPage() {
                   </Badge>
                 )}
                 {isEnded && (
-                  <Badge variant="outline" className="text-muted-foreground text-[10px]">
+                  <Badge
+                    variant="outline"
+                    className="text-muted-foreground text-[10px]"
+                  >
                     Ended
                   </Badge>
                 )}
@@ -237,9 +275,9 @@ export default function LightningRoundPage() {
               )}
 
               <p className="text-muted-foreground mb-6 max-w-xl">
-                High-volume curated bounty events occurring every 10 days — 20 to
-                50 bounties across all skill categories. Compete, contribute, and
-                earn.
+                High-volume curated bounty events occurring every 10 days — 20
+                to 50 bounties across all skill categories. Compete, contribute,
+                and earn.
               </p>
 
               {currentRound && (
@@ -281,7 +319,9 @@ export default function LightningRoundPage() {
                 <StatCard
                   icon={<Zap className="h-3.5 w-3.5" />}
                   label="Categories"
-                  value={String(currentRound.categories.length || categoryEntries.length)}
+                  value={String(
+                    currentRound.categories.length || categoryEntries.length,
+                  )}
                 />
               </div>
             )}
@@ -291,10 +331,7 @@ export default function LightningRoundPage() {
         {/* Round selector */}
         {rounds.length > 1 && (
           <div className="mb-6">
-            <RoundSelector
-              rounds={rounds}
-              activeId={currentRound?.id ?? ""}
-            />
+            <RoundSelector rounds={rounds} activeId={currentRound?.id ?? ""} />
           </div>
         )}
 
@@ -332,7 +369,11 @@ export default function LightningRoundPage() {
             </div>
           ) : (
             categoryEntries.map(([category, bounties]) => (
-              <CategorySection key={category} category={category} bounties={bounties} />
+              <CategorySection
+                key={category}
+                category={category}
+                bounties={bounties}
+              />
             ))
           )}
         </div>
